@@ -19,3 +19,7 @@ docs/*
 
 #macos
 .DS_Store
+/data/docs/storage
+data/docs/log/docs.log
+docs-web/data/docs.mv.db
+docs-web/data/docs.trace.db
