@@ -111,6 +111,28 @@
         </configuration>
       </plugin>
 
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.20.0</version>
+        <configuration>
+          <rulesets>
+            <ruleset>customize-rules.xml</ruleset>
+          </rulesets>
+          <linkXRef>true</linkXRef>
+          <sourceEncoding>UTF-8</sourceEncoding>
+          <minimumTokens>100</minimumTokens>
+          <targetJdk>11</targetJdk>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+              <goal>cpd-check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
       <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -507,5 +529,23 @@
     </site>
   </distributionManagement>
 
+  <reporting>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-pmd-plugin</artifactId>
+            <version>3.20.0</version>
+            <configuration>
+                <rulesets>
+                    <ruleset>customize-rules.xml</ruleset>
+                </rulesets>
+                <linkXRef>true</linkXRef>
+                <sourceEncoding>UTF-8</sourceEncoding>
+                <minimumTokens>100</minimumTokens>
+                <targetJdk>11</targetJdk>
+            </configuration>
+        </plugin>
+    </plugins>
+  </reporting>
 
 </project>
