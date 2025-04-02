@@ -13,6 +13,12 @@
   <artifactId>docs-web-common</artifactId>
   <packaging>jar</packaging>
   <name>Docs Web Commons</name>
+  <distributionManagement>
+    <site>
+        <id>local</id>
+        <url>file:${project.build.directory}/site</url>
+    </site>
+  </distributionManagement>
 
   <dependencies>
     <!-- Dependencies to Docs -->
