@@ -103,6 +103,10 @@
     <servlet-name>JerseyServlet</servlet-name>
     <url-pattern>/api/*</url-pattern>
   </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>/apidoc/*</url-pattern>
+  </servlet-mapping>
   
   <absolute-ordering/>
 </web-app>

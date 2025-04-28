@@ -275,6 +275,28 @@
               <webXml>src/main/webapp/WEB-INF/web.xml</webXml>
             </configuration>
           </plugin>
+
+                    <!-- 新增：Jetty plugin，运行打包好的WAR -->
+          <plugin>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>run-war</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <webApp>
+                <contextPath>/</contextPath> <!-- 注意这里是 / 根路径 -->
+              </webApp>
+              <systemProperties>
+                <application.mode>prod</application.mode>
+                <docs.home>../data/docs</docs.home>
+              </systemProperties>
+            </configuration>
+          </plugin>          
         </plugins>
       </build>
     </profile>

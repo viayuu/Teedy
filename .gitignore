@@ -24,3 +24,5 @@ data/docs/log/docs.log
 docs-web/data/docs.mv.db
 docs-web/data/docs.trace.db
 /target
+/docs-web/src/dev/main/webapp/apidoc
+/data/docs/db
