@@ -142,7 +142,7 @@ public class TestJpa extends BaseTransactionalTest {
         
         // Test update hashed password directly
         String originalPassword = user.getPassword();
-        user.setPassword("$2a$10$ztbqLXOA2PF7QeVzWLYLt.HbUvJQkLZ9OG8xCTP3XdGb.HpJwm4Xq"); // pre-hashed "differentpassword"
+        user.setPassword("$2a$10$ztbqLXOA2PF7QeVzWLYLt.HbUvJQkLZ9OG8xCTP3XdGb.HpJwm4Xq"); 
         userDao.updateHashedPassword(user);
         TransactionUtil.commit();
         Assert.assertNotNull(new InternalAuthenticationHandler().authenticate("testJpa", "differentpassword"));
@@ -167,16 +167,14 @@ public class TestJpa extends BaseTransactionalTest {
         
         // Test global storage calculations
         long globalStorage = userDao.getGlobalStorageCurrent();
-        Assert.assertTrue(globalStorage >= 3000L); // Should be at least 1000 + 2000 from our two test users
+        Assert.assertTrue(globalStorage >= 3000L);
         
         // Test active user count
         long activeUserCount = userDao.getActiveUserCount();
-        Assert.assertTrue(activeUserCount >= 2); // Should include our two test users
+        Assert.assertTrue(activeUserCount >= 2);
         
-        // Test different hashPassword scenarios - can't directly test but we can verify behavior by authentication
-        // Already tested normal password hashing above
         
-        // Try to create a user with existing username (should throw exception)
+        // Try to create a user with existing username
         User duplicateUser = new User();
         duplicateUser.setUsername("testJpa");
         duplicateUser.setPassword("password");
@@ -340,7 +338,6 @@ public class TestJpa extends BaseTransactionalTest {
         List<String> adminTargetList = new ArrayList<>();
         adminTargetList.add("admin");
         DocumentDto docDto = documentDao.getDocument(document1Id, PermType.READ, adminTargetList);
-        // Note: This test might need to be adjusted based on your ACL implementation
         
         // Test update document
         document1.setTitle("Updated Document Title");
@@ -354,40 +351,40 @@ public class TestJpa extends BaseTransactionalTest {
         Assert.assertEquals("Updated Description", checkDoc.getDescription());
         Assert.assertEquals("spa", checkDoc.getLanguage());
         
-        // Test updateFileId
+        // Test updateFileId    
         document1.setFileId("testfileid456");
         documentDao.updateFileId(document1);
         TransactionUtil.commit();
-        
+
         Document fileIdDoc = documentDao.getById(document1Id);
         Assert.assertEquals("testfileid456", fileIdDoc.getFileId());
         
-        // Test delete document
+        // Test delete document 
         documentDao.delete(document1Id, user1.getId());
-        TransactionUtil.commit();
+        TransactionUtil.commit();   
         
         // Verify document was deleted
         Document deletedDoc = documentDao.getById(document1Id);
-        Assert.assertNull(deletedDoc);
+        Assert.assertNull(deletedDoc);  
         
         // Verify document count decreased
-        long afterDeleteCount = documentDao.getDocumentCount();
+        long afterDeleteCount = documentDao.getDocumentCount(); 
         Assert.assertEquals(initialDocCount + 1, afterDeleteCount);
         
         // Test getById with nonexistent document
         Document nonExistentDoc = documentDao.getById("nonexistentid");
-        Assert.assertNull(nonExistentDoc);
-        
+        Assert.assertNull(nonExistentDoc);      
+
         // Test getDocument with nonexistent document
         DocumentDto nonExistentDocDto = documentDao.getDocument("nonexistentid", PermType.READ, adminTargetList);
-        Assert.assertNull(nonExistentDocDto);
+        Assert.assertNull(nonExistentDocDto);   
         
         // Delete the second document
-        documentDao.delete(document2Id, user2.getId());
+        documentDao.delete(document2Id, user2.getId ());
         TransactionUtil.commit();
         
         // Clean up - delete test users
-        userDao.delete("docUser2", user1.getId());
+        userDao.delete("docUser2", user1.getId());  
         TransactionUtil.commit();
         userDao.delete("docUser1", user1.getId());
         TransactionUtil.commit();
