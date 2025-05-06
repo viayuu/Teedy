@@ -62,9 +62,6 @@ import java.util.*;
  * @author Enrico M. Crisostomo
  * @author Warren Strange
  * @version 0.5.0
- * @see <a href=
- *      "http://thegreyblog.blogspot.com/2011/12/google-authenticator-using-it-in-your.html"
- *      />
  * @since 0.3.0
  */
 public final class GoogleAuthenticator {
