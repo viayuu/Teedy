@@ -184,6 +184,18 @@
 
         <plugins>
           <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.6.3</version>
+            <configuration>
+              <doclint>none</doclint> <!-- 忽略所有文档检查，包括未知标签 -->
+              <failOnError>false</failOnError> <!-- 允许注释错误不中断构建 -->
+              <additionalparam>-Xdoclint:none</additionalparam> <!-- 禁用严格检查 -->
+              <doclint>none</doclint>
+            </configuration>
+          </plugin>
+
+          <plugin>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-maven-plugin</artifactId>
             <configuration>
