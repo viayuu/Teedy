@@ -147,7 +147,7 @@
           </dependencies>
       </plugin>
 
-      <!-- <plugin>
+      <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.9</version>
@@ -165,7 +165,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin> -->
+      </plugin>
 
     </plugins>
   </build>
@@ -588,7 +588,7 @@
                 </reportSet>
             </reportSets>
         </plugin>
-        <!-- <plugin>
+        <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>0.8.9</version>
@@ -601,7 +601,7 @@
                     </reports>
                 </reportSet>
             </reportSets>
-        </plugin> -->
+        </plugin>
 
         <!-- 新增 Javadoc 插件配置（关键修改） -->
         <plugin>
