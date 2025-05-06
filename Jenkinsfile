@@ -30,12 +30,22 @@ pipeline {
         }
         stage('Javadoc') {
             steps {
-                    sh 'mvn javadoc:javadoc'            
+                script {
+                    try {
+                        // 运行Javadoc命令，捕获可能错误
+                        sh 'mvn javadoc:javadoc'
+                    } catch (Exception e) {
+                        echo "Javadoc generation failed with error: ${e}. Ignoring and continuing build..."
+                        // 设置构建状态为UNSTABLE，以标记问题但不失败
+                        currentBuild.result = 'UNSTABLE'
+                    }
+                }
             }
         }
         stage('Site') {
             steps {
-                    sh 'mvn site'
+                // 运行Site命令，确保即使Javadoc失败，Site也能尝试生成
+                sh 'mvn site'
             }
         }
         stage('Package') {
