@@ -30,18 +30,12 @@ pipeline {
         }
         stage('Javadoc') {
             steps {
-                // 即使 javadoc 失败也继续
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh 'mvn javadoc:javadoc'
-                }
+                    sh 'mvn javadoc:javadoc'            
             }
         }
         stage('Site') {
             steps {
-                // 即使 site 生成失败也继续
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh 'mvn site'
-                }
             }
         }
         stage('Package') {
