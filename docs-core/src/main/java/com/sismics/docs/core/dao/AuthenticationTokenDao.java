@@ -63,7 +63,6 @@ public class AuthenticationTokenDao {
      * Deletes old short lived tokens.
      *
      * @param userId User ID
-     * @throws Exception
      */
     public void deleteOldSessionToken(String userId) {
         StringBuilder sb = new StringBuilder("delete from T_AUTHENTICATION_TOKEN AS ato ");
