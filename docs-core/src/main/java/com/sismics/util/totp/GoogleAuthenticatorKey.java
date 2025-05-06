@@ -36,9 +36,7 @@ import java.util.List;
 /**
  * This class is a JavaBean used by the GoogleAuthenticator library to represent
  * a secret key.
- * <p/>
  * This class is immutable.
- * <p/>
  * Instance of this class should only be constructed by the GoogleAuthenticator
  * library.
  *
