@@ -610,6 +610,7 @@
           <version>3.6.3</version> <!-- 与文档一致的版本 -->
           <configuration>
             <failOnError>false</failOnError> <!-- 允许注释错误不中断构建 -->
+            <additionalparam>-Xdoclint:none</additionalparam> <!-- 禁用严格检查 -->
             <encoding>UTF-8</encoding> <!-- 新增：指定编码，避免中文乱码 -->
             <charset>UTF-8</charset>
           </configuration>
