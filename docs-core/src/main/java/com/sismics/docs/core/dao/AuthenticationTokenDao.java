@@ -82,7 +82,6 @@ public class AuthenticationTokenDao {
      * Deletes old short lived tokens.
      *
      * @param id Token id
-     * @throws Exception
      */
     public void updateLastConnectionDate(String id) {
         StringBuilder sb = new StringBuilder("update T_AUTHENTICATION_TOKEN ato ");
