@@ -1,5 +1,6 @@
 pipeline {
     agent any
+
     stages {
         stage('Clean') {
             steps {
@@ -13,6 +14,7 @@ pipeline {
         }
         stage('Test') {
             steps {
+                // 单独通过 Maven 参数忽略测试失败
                 sh 'mvn test -Dmaven.test.failure.ignore=true'
             }
         }
@@ -28,26 +30,27 @@ pipeline {
         }
         stage('Javadoc') {
             steps {
-                sh 'mvn javadoc:javadoc'
+                    sh 'mvn javadoc:javadoc'            
             }
         }
         stage('Site') {
             steps {
-                sh 'mvn site'
+                    sh 'mvn site'
             }
         }
-stage('Package') {
- steps {
- sh 'mvn package -DskipTests'
- }
- }
- }
- post {
- always {
- archiveArtifacts artifacts: '**/target/site/**/*.*', fingerprint: true
- archiveArtifacts artifacts: '**/target/**/*.jar', fingerprint: true
- archiveArtifacts artifacts: '**/target/**/*.war', fingerprint: true
- junit '**/target/surefire-reports/*.xml'
- }
- }
- }
+        stage('Package') {
+            steps {
+                sh 'mvn package -DskipTests'
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: '**/target/site/**/*.*', fingerprint: true
+            archiveArtifacts artifacts: '**/target/**/*.jar', fingerprint: true
+            archiveArtifacts artifacts: '**/target/**/*.war', fingerprint: true
+            junit '**/target/surefire-reports/*.xml'
+        }
+    }
+}
