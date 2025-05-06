@@ -2,9 +2,7 @@ package com.sismics.util;
 
 import java.awt.image.BufferedImage;
 
-/**
- * <a url=http://www.jdeskew.com/>JDeskew</a>
- */
+
 public class ImageDeskew {
     /**
      * Representation of a line in the image.

@@ -631,6 +631,7 @@
           <configuration>
             <failOnError>false</failOnError> <!-- 允许注释错误不中断构建 -->
             <additionalparam>-Xdoclint:none</additionalparam> <!-- 禁用严格检查 -->
+            <doclint>none</doclint>
             <encoding>UTF-8</encoding> <!-- 新增：指定编码，避免中文乱码 -->
             <charset>UTF-8</charset>
           </configuration>
