@@ -19,6 +19,11 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/docs-web/api') // 将前端的 /api 替换为后端的 /docs-web/api
+      },
+      '/data-api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/data-api/, '/api') // 将前端的 /data-api 替换为数据服务器的 /api
       }
     }
   }

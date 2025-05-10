@@ -8,6 +8,10 @@
         {{ successMessage }}
       </div>
       
+      <div v-if="errorMessage" class="alert alert-danger" role="alert">
+        {{ errorMessage }}
+      </div>
+      
       <form @submit.prevent="submitRequest" v-if="!successMessage">
         <div class="mb-3">
           <label for="username" class="form-label">用户名</label>
@@ -51,6 +55,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'RegisterRequestForm',
   data() {
@@ -64,7 +70,9 @@ export default {
       },
       validationErrors: {},
       isSubmitting: false,
-      successMessage: ''
+      successMessage: '',
+      errorMessage: '',
+      apiUrl: '/data-api/registrations' // 修改为相对路径，使用新的代理前缀
     }
   },
   methods: {
@@ -106,39 +114,28 @@ export default {
       return isValid;
     },
     
-    submitRequest() {
+    async submitRequest() {
       // 表单验证
       if (!this.validateForm()) {
         return;
       }
       
       this.isSubmitting = true;
+      this.errorMessage = '';
       
-      // 准备要存储的注册请求数据
-      const registrationRequest = {
-        username: this.formData.username,
-        email: this.formData.email,
-        password: this.formData.password,
-        storageQuota: this.formData.storageQuota,
-        requestDate: new Date().toISOString()
-      };
-      
-      // 从localStorage获取现有的注册请求
-      let pendingRegistrations = JSON.parse(localStorage.getItem('pendingRegistrations') || '[]');
-      
-      // 检查是否有相同用户名的请求
-      const existingIndex = pendingRegistrations.findIndex(reg => reg.username === registrationRequest.username);
-      if (existingIndex >= 0) {
-        pendingRegistrations[existingIndex] = registrationRequest;
-      } else {
-        pendingRegistrations.push(registrationRequest);
-      }
-      
-      // 保存回localStorage
-      localStorage.setItem('pendingRegistrations', JSON.stringify(pendingRegistrations));
-      
-      // 重置表单并显示成功信息
-      setTimeout(() => {
+      try {
+        // 准备要存储的注册请求数据
+        const registrationRequest = {
+          username: this.formData.username,
+          email: this.formData.email,
+          password: this.formData.password,
+          storageQuota: this.formData.storageQuota,
+          requestDate: new Date().toISOString()
+        };
+        
+        // 发送到服务器保存
+        await axios.post(this.apiUrl, registrationRequest);
+        
         this.isSubmitting = false;
         this.successMessage = `申请已提交成功! 请等待管理员审批`;
         
@@ -150,7 +147,11 @@ export default {
           confirmPassword: '',
           storageQuota: 1000000000
         };
-      }, 1000);
+      } catch (error) {
+        this.isSubmitting = false;
+        this.errorMessage = `提交申请失败: ${error.response?.data?.error || error.message}`;
+        console.error('Error submitting registration:', error);
+      }
     }
   }
 }

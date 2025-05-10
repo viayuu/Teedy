@@ -4,15 +4,23 @@
       <h4>待审批注册申请</h4>
     </div>
     <div class="card-body">
+      <div v-if="statusMessage" :class="['alert', statusMessage.type]" role="alert">
+        {{ statusMessage.text }}
+      </div>
+      
+      <div class="mb-3">
+        <button class="btn btn-outline-secondary" type="button" @click="loadPendingRegistrations">
+          <i class="bi bi-arrow-clockwise"></i> 刷新列表
+        </button>
+      </div>
+      
+      <hr>
+      
       <div v-if="pendingRegistrations.length === 0" class="alert alert-info">
         当前没有待审批的注册申请
       </div>
       
       <div v-else>
-        <div v-if="statusMessage" :class="['alert', statusMessage.type]" role="alert">
-          {{ statusMessage.text }}
-        </div>
-        
         <div class="table-responsive">
           <table class="table table-bordered">
             <thead class="table-light">
@@ -39,7 +47,7 @@
                       同意
                     </button>
                     <button class="btn btn-danger btn-sm" 
-                            @click="rejectRegistration(index)"
+                            @click="rejectRegistration(registration)"
                             :disabled="processingIndex === index">
                       <span v-if="processingIndex === index && !isApproving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
                       拒绝
@@ -65,16 +73,27 @@ export default {
       pendingRegistrations: [],
       processingIndex: null,
       isApproving: false,
-      statusMessage: null
+      statusMessage: null,
+      apiUrl: '/data-api/registrations' // 修改为相对路径，使用新的代理前缀
     }
   },
   mounted() {
     this.loadPendingRegistrations();
   },
   methods: {
-    loadPendingRegistrations() {
-      const registrations = JSON.parse(localStorage.getItem('pendingRegistrations') || '[]');
-      this.pendingRegistrations = registrations;
+    // 从服务器加载数据
+    async loadPendingRegistrations() {
+      try {
+        const response = await axios.get(this.apiUrl);
+        this.pendingRegistrations = response.data;
+        this.setStatusMessage('已从服务器加载最新数据', 'alert-success');
+      } catch (error) {
+        console.error('Error loading registrations:', error);
+        this.setStatusMessage(
+          `加载注册申请失败: ${error.response?.data?.error || error.message}`, 
+          'alert-danger'
+        );
+      }
     },
     
     formatStorage(bytes) {
@@ -126,9 +145,11 @@ export default {
           withCredentials: true // 确保发送Cookie用于身份验证
         });
         
-        // 更新localStorage
-        this.removeRegistration(index);
+        // 删除服务器上的申请
+        await this.removeRegistration(registration.username);
+        
         this.setStatusMessage(`用户 ${registration.username} 已成功创建`);
+        await this.loadPendingRegistrations(); // 重新加载列表
       } catch (error) {
         console.error('Create user error:', error);
         this.setStatusMessage(
@@ -141,26 +162,31 @@ export default {
       }
     },
     
-    rejectRegistration(index) {
+    async rejectRegistration(registration) {
+      const index = this.pendingRegistrations.findIndex(r => r.username === registration.username);
       this.processingIndex = index;
       this.isApproving = false;
       
-      // 获取要拒绝的用户名
-      const username = this.pendingRegistrations[index].username;
-      
-      // 移除该申请
-      this.removeRegistration(index);
-      this.setStatusMessage(`已拒绝用户 ${username} 的注册申请`);
-      
-      this.processingIndex = null;
+      try {
+        // 从服务器删除申请
+        await this.removeRegistration(registration.username);
+        
+        this.setStatusMessage(`已拒绝用户 ${registration.username} 的注册申请`);
+        await this.loadPendingRegistrations(); // 重新加载列表
+      } catch (error) {
+        console.error('Reject registration error:', error);
+        this.setStatusMessage(
+          `拒绝注册申请失败: ${error.response?.data?.error || error.message}`, 
+          'alert-danger'
+        );
+      } finally {
+        this.processingIndex = null;
+      }
     },
     
-    removeRegistration(index) {
-      // 从数组中移除
-      this.pendingRegistrations.splice(index, 1);
-      
-      // 更新localStorage
-      localStorage.setItem('pendingRegistrations', JSON.stringify(this.pendingRegistrations));
+    async removeRegistration(username) {
+      // 调用服务器API删除注册申请
+      await axios.delete(`${this.apiUrl}/${username}`);
     }
   }
 }
