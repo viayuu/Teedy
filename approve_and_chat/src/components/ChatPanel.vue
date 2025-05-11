@@ -1,0 +1,276 @@
+<template>
+  <div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h4>{{ currentGroup ? currentGroup.name : '群组聊天' }}</h4>
+      <div v-if="currentGroup">
+        <span class="badge bg-light text-dark">{{ currentGroup.members ? currentGroup.members.length : 0 }} 位成员</span>
+      </div>
+    </div>
+    
+    <div class="card-body p-0">
+      <!-- 聊天记录区域 -->
+      <div 
+        ref="chatLog"
+        class="chat-messages p-3" 
+        style="height: 400px; overflow-y: auto;"
+      >
+        <div v-if="loading" class="d-flex justify-content-center my-3">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">加载中...</span>
+          </div>
+        </div>
+        
+        <div v-else-if="!currentGroup" class="alert alert-info mx-3 my-3">
+          请先选择一个群组进行聊天
+        </div>
+        
+        <div v-else-if="chatMessages.length === 0" class="text-center text-muted my-5">
+          还没有任何消息，开始聊天吧！
+        </div>
+        
+        <div v-else>
+          <div 
+            v-for="message in chatMessages" 
+            :key="message.id"
+            class="message mb-3"
+            :class="{'message-self': isCurrentUser(message.username)}"
+          >
+            <div class="message-header d-flex justify-content-between">
+              <strong>{{ message.username }}</strong>
+              <small class="text-muted">{{ formatTime(message.timestamp) }}</small>
+            </div>
+            <div 
+              class="message-body p-2 rounded"
+              :class="{'bg-primary text-white': isCurrentUser(message.username), 'bg-light': !isCurrentUser(message.username)}"
+            >
+              {{ message.message }}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 消息输入区域 -->
+      <div class="message-input p-3 border-top">
+        <form @submit.prevent="sendMessage">
+          <div v-if="error" class="alert alert-danger mb-3">{{ error }}</div>
+          
+          <div class="input-group">
+            <input 
+              type="text" 
+              class="form-control" 
+              v-model="newMessage" 
+              placeholder="输入消息..." 
+              :disabled="!currentGroup || sending"
+            >
+            <button 
+              class="btn btn-primary" 
+              type="submit" 
+              :disabled="!currentGroup || !newMessage.trim() || sending"
+            >
+              <span v-if="sending" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+              发送
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  name: 'ChatPanel',
+  props: {
+    group: {
+      type: Object,
+      default: null
+    }
+  },
+  data() {
+    return {
+      currentGroup: null,
+      currentUser: null,
+      chatMessages: [],
+      newMessage: '',
+      loading: false,
+      sending: false,
+      error: null,
+      refreshInterval: null
+    }
+  },
+  watch: {
+    group(newGroup) {
+      this.currentGroup = newGroup;
+      if (newGroup) {
+        this.loadMessages();
+      }
+    }
+  },
+  async mounted() {
+    // 获取当前用户信息
+    const userJson = localStorage.getItem('currentUser');
+    if (userJson) {
+      try {
+        this.currentUser = JSON.parse(userJson);
+      } catch (e) {
+        console.error('解析用户信息失败:', e);
+        this.error = '无法获取用户信息，请重新登录';
+      }
+    }
+    
+    // 如果有传入的group，则使用该group
+    if (this.group) {
+      this.currentGroup = this.group;
+      await this.loadMessages();
+    } else {
+      // 否则，尝试从localStorage获取上次选择的群组
+      const groupJson = localStorage.getItem('currentChatGroup');
+      if (groupJson) {
+        try {
+          const savedGroup = JSON.parse(groupJson);
+          this.currentGroup = savedGroup;
+          await this.loadMessages();
+        } catch (e) {
+          console.error('解析群组信息失败:', e);
+        }
+      }
+    }
+    
+    // 设置定时刷新聊天记录
+    this.refreshInterval = setInterval(() => {
+      if (this.currentGroup) {
+        this.refreshMessages();
+      }
+    }, 1000); // 每3秒刷新一次
+    
+    // 页面卸载前，通知服务器用户下线
+    window.addEventListener('beforeunload', this.notifyLogout);
+  },
+  beforeUnmount() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+    this.notifyLogout();
+    window.removeEventListener('beforeunload', this.notifyLogout);
+  },
+  updated() {
+    // 消息更新后滚动到底部
+    this.scrollToBottom();
+  },
+  methods: {
+    async loadMessages() {
+      if (!this.currentGroup) return;
+      
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const response = await axios.get(`/chat-api/chat/groups/${this.currentGroup.name}/log`);
+        this.chatMessages = response.data;
+        this.loading = false;
+        
+        // 滚动到最新消息
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
+      } catch (error) {
+        console.error('加载消息失败:', error);
+        this.error = '无法加载聊天记录: ' + (error.response?.data?.error || error.message);
+        this.loading = false;
+      }
+    },
+    
+    async refreshMessages() {
+      if (!this.currentGroup) return;
+      
+      try {
+        const response = await axios.get(`/chat-api/chat/groups/${this.currentGroup.name}/log`);
+        // 检查是否有新消息
+        if (response.data.length !== this.chatMessages.length) {
+          // 更新消息列表并滚动到底部
+          this.chatMessages = response.data;
+          this.$nextTick(() => {
+            this.scrollToBottom();
+          });
+        }
+      } catch (error) {
+        console.error('刷新消息失败:', error);
+      }
+    },
+    
+    async sendMessage() {
+      if (!this.currentGroup || !this.newMessage.trim() || !this.currentUser) return;
+      
+      this.sending = true;
+      this.error = null;
+      
+      try {
+        await axios.post('/chat-api/chat/groups/append-message', {
+          groupName: this.currentGroup.name,
+          username: this.currentUser.username,
+          message: this.newMessage.trim()
+        });
+        
+        // 清空输入框并刷新消息
+        this.newMessage = '';
+        await this.refreshMessages();
+        
+        this.sending = false;
+      } catch (error) {
+        console.error('发送消息失败:', error);
+        this.error = '无法发送消息: ' + (error.response?.data?.error || error.message);
+        this.sending = false;
+      }
+    },
+    
+    async notifyLogout() {
+      if (this.currentUser && this.currentUser.username) {
+        try {
+          await axios.post('/chat-api/notify/logout', {
+            username: this.currentUser.username
+          });
+        } catch (error) {
+          console.error('通知登出失败:', error);
+        }
+      }
+    },
+    
+    isCurrentUser(username) {
+      return this.currentUser && this.currentUser.username === username;
+    },
+    
+    formatTime(timestamp) {
+      if (!timestamp) return '';
+      
+      const date = new Date(timestamp);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    },
+    
+    scrollToBottom() {
+      const chatLog = this.$refs.chatLog;
+      if (chatLog) {
+        chatLog.scrollTop = chatLog.scrollHeight;
+      }
+    }
+  }
+}
+</script>
+
+<style scoped>
+.message-self .message-body {
+  margin-left: auto;
+  max-width: 80%;
+  width: fit-content;
+}
+
+.message-body {
+  max-width: 80%;
+  width: fit-content;
+}
+
+.chat-messages {
+  background-color: #f8f9fa;
+}
+</style> 

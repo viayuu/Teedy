@@ -10,6 +10,7 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = 3001;
 const DATA_FILE = join(__dirname, 'data', 'registrations.json');
+const GROUPS_FILE = join(__dirname, 'data', 'groups.json');
 
 // 确保data目录存在
 if (!fs.existsSync(join(__dirname, 'data'))) {
@@ -19,6 +20,11 @@ if (!fs.existsSync(join(__dirname, 'data'))) {
 // 如果数据文件不存在，创建一个空的JSON数组
 if (!fs.existsSync(DATA_FILE)) {
   fs.writeFileSync(DATA_FILE, '[]', 'utf8');
+}
+
+// 如果群组数据文件不存在，创建一个空的JSON数组
+if (!fs.existsSync(GROUPS_FILE)) {
+  fs.writeFileSync(GROUPS_FILE, '[]', 'utf8');
 }
 
 // 中间件
@@ -88,6 +94,41 @@ app.delete('/api/registrations/:username', (req, res) => {
   }
 });
 
+// 获取所有群组
+app.get('/api/groups', (req, res) => {
+  try {
+    if (!fs.existsSync(GROUPS_FILE)) {
+      return res.json([]);
+    }
+    
+    const data = fs.readFileSync(GROUPS_FILE, 'utf8');
+    res.json(JSON.parse(data));
+  } catch (error) {
+    console.error('Error reading groups:', error);
+    res.status(500).json({ error: 'Failed to read groups' });
+  }
+});
+
+// 保存群组数据
+app.post('/api/groups', (req, res) => {
+  try {
+    const groups = req.body;
+    
+    // 确保是数组
+    if (!Array.isArray(groups)) {
+      return res.status(400).json({ error: '群组数据必须是数组格式' });
+    }
+    
+    // 保存到文件
+    fs.writeFileSync(GROUPS_FILE, JSON.stringify(groups, null, 2), 'utf8');
+    
+    res.status(201).json({ success: true, message: '群组数据已保存', count: groups.length });
+  } catch (error) {
+    console.error('Error saving groups:', error);
+    res.status(500).json({ error: 'Failed to save groups' });
+  }
+});
+
 // 提供静态文件服务
 app.use(express.static('public'));
 app.use(express.static('dist'));
@@ -150,4 +191,5 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Data server running at http://localhost:${PORT}`);
   console.log(`Data file: ${DATA_FILE}`);
+  console.log(`Groups file: ${GROUPS_FILE}`);
 }); 

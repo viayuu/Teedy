@@ -18,12 +18,33 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/docs-web/api') // 将前端的 /api 替换为后端的 /docs-web/api
+        // 提供两种可能的API路径格式
+        rewrite: (path) => {
+          // 检查环境变量来决定使用哪种路径
+          const useDirectPath = process.env.DIRECT_API === 'true';
+          
+          if (useDirectPath) {
+            // 直接使用/api路径
+            return path;
+          } else {
+            // 使用/docs-web/api路径
+            return path.replace(/^\/api/, '/docs-web/api');
+          }
+        }
+      },
+      '/docs-web/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
       },
       '/data-api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/data-api/, '/api') // 将前端的 /data-api 替换为数据服务器的 /api
+      },
+      '/chat-api': {
+        target: 'http://localhost:3002',  // 聊天服务器地址
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/chat-api/, '') // 将前端的 /chat-api 替换为聊天服务器的根路径
       }
     }
   }
