@@ -121,7 +121,7 @@ export default {
       // 设置刷新定时器
       this.refreshInterval = setInterval(async () => {
         await this.refreshOnlineUsers();
-      }, 10000); // 每10秒刷新一次在线用户
+      }, 1000); // 每10秒刷新一次在线用户
       
       this.loading = false;
     },
