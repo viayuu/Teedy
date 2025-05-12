@@ -56,10 +56,10 @@ pipeline {
                     sh "docker stop teedy-container-8085 || true && docker rm teedy-container-8085 || true"
                     sh "docker stop teedy-container-8086 || true && docker rm teedy-container-8086 || true"
                     sh "docker stop teedy-container-8087 || true && docker rm teedy-container-8087 || true"
-                    
+                    sh "docker stop teedy-container-8089 || true && docker rm teedy-container-8089 || true"
                     // 运行三个容器（每个容器单独一行，用分号或换行分隔）
                     sh """
-                    docker run -d -p 8085:8080 --name teedy-container-8085 ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
+                    docker run -d -p 8089:8080 --name teedy-container-8089 ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
                     docker run -d -p 8086:8080 --name teedy-container-8086 ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
                     docker run -d -p 8087:8080 --name teedy-container-8087 ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
                     """
