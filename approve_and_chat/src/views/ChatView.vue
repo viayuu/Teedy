@@ -13,12 +13,7 @@
         <ChatPanel :group="selectedGroup" />
       </div>
     </div>
-    
-    <!-- 用户登录提示 -->
-    <div v-if="!currentUser" class="alert alert-warning mt-4">
-      <p><strong>提示：</strong> 您需要先在Teedy系统中登录，才能使用群组聊天功能。</p>
-      <a href="/docs-web" class="btn btn-primary">前往Teedy登录</a>
-    </div>
+  
   </div>
 </template>
 
