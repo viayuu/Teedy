@@ -146,7 +146,15 @@ export default {
         
         // 4. 如果有用户组，选择第一个
         if (this.userGroups.length > 0) {
+          console.log('自动选择第一个群组:', this.userGroups[0]);
+          // 确保选择群组并通知父组件
           this.selectGroup(this.userGroups[0]);
+          
+          // 延迟一下，确保父组件有时间处理
+          setTimeout(() => {
+            // 再次发送通知，确保父组件收到
+            this.$emit('group-selected', this.selectedGroup);
+          }, 300);
         }
         
         this.loading = false;

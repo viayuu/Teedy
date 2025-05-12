@@ -59,6 +59,21 @@ export default {
     this.checkUserInterval = setInterval(() => {
       this.checkUserStatus();
     }, 500); // 降低检查间隔，更快响应状态变化
+    
+    // 检查是否需要刷新页面（首次进入chat界面时）
+    const hasRefreshed = localStorage.getItem('chatViewRefreshed');
+    if (!hasRefreshed) {
+      // 设置标记，避免刷新后再次刷新
+      localStorage.setItem('chatViewRefreshed', 'true');
+      
+      // 使用setTimeout避免过早刷新，确保标记已经保存
+      setTimeout(() => {
+        console.log('首次进入聊天界面，自动刷新以确保组件正确初始化');
+        window.location.reload();
+      }, 100);
+    } else {
+      console.log('聊天界面已刷新过，无需再次刷新');
+    }
   },
   beforeUnmount() {
     // 清除事件监听和定时器
@@ -69,12 +84,33 @@ export default {
   },
   methods: {
     onGroupSelected(group) {
+      console.log('群组被选择:', group);
       this.selectedGroup = group;
+      
+      // 确保ChatPanel组件正确接收到群组信息
+      if (this.$refs.chatPanel) {
+        // 使用$nextTick确保DOM更新后再执行
+        this.$nextTick(() => {
+          // 手动触发ChatPanel的加载消息方法
+          if (this.$refs.chatPanel.currentGroup !== group) {
+            this.$refs.chatPanel.currentGroup = group;
+            this.$refs.chatPanel.loadMessages();
+          }
+        });
+      }
     },
     
     // 当ChatPanel加载用户信息时的回调
     onUserLoaded(user) {
+      console.log('用户加载完成:', user);
       this.currentUser = user;
+      
+      // 如果已经有selectedGroup但ChatPanel可能还没加载它，再次触发选择
+      if (this.selectedGroup && this.$refs.chatPanel) {
+        this.$nextTick(() => {
+          this.onGroupSelected(this.selectedGroup);
+        });
+      }
     },
     
     // 检查用户登录状态
@@ -121,6 +157,8 @@ export default {
           // 清除本地存储的用户信息
           localStorage.removeItem('currentUser');
           localStorage.removeItem('currentChatGroup');
+          // 清除刷新标记，确保下次登录后能正确刷新
+          localStorage.removeItem('chatViewRefreshed');
           this.currentUser = null;
           
           // 跳转到Teedy文档系统

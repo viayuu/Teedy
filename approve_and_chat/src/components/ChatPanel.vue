@@ -20,6 +20,15 @@
           </div>
         </div>
         
+        <div v-else-if="error" class="alert alert-danger mx-3 my-3">
+          <strong>错误:</strong> {{ error }}
+          <div class="mt-2">
+            <button @click="retryLoadMessages" class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-arrow-clockwise"></i> 重试
+            </button>
+          </div>
+        </div>
+        
         <div v-else-if="!currentGroup" class="alert alert-info mx-3 my-3">
           请先选择一个群组进行聊天
         </div>
@@ -60,16 +69,23 @@
               class="form-control" 
               v-model="newMessage" 
               placeholder="输入消息..." 
-              :disabled="!currentGroup || sending"
+              :disabled="!currentGroup || sending || !currentUser"
             >
             <button 
               class="btn btn-primary" 
               type="submit" 
-              :disabled="!currentGroup || !newMessage.trim() || sending"
+              :disabled="!currentGroup || !newMessage.trim() || sending || !currentUser"
             >
               <span v-if="sending" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
               发送
             </button>
+          </div>
+          
+          <div v-if="!currentUser" class="text-danger small mt-2">
+            <i class="bi bi-exclamation-triangle-fill"></i> 用户信息未加载，请刷新页面或重新登录
+          </div>
+          <div v-if="!currentGroup" class="text-warning small mt-2">
+            <i class="bi bi-info-circle-fill"></i> 请先从左侧选择一个群组
           </div>
         </form>
       </div>
@@ -102,13 +118,16 @@ export default {
   },
   watch: {
     group(newGroup) {
-      this.currentGroup = newGroup;
+      console.log('ChatPanel收到新群组:', newGroup);
       if (newGroup) {
+        this.currentGroup = newGroup;
         this.loadMessages();
       }
     }
   },
   async mounted() {
+    console.log('ChatPanel mounted, 接收到的group:', this.group);
+    
     // 获取当前用户信息
     const userJson = localStorage.getItem('currentUser');
     if (userJson) {
@@ -124,6 +143,7 @@ export default {
     
     // 如果有传入的group，则使用该group
     if (this.group) {
+      console.log('使用props传入的群组:', this.group);
       this.currentGroup = this.group;
       await this.loadMessages();
     } else {
@@ -132,6 +152,7 @@ export default {
       if (groupJson) {
         try {
           const savedGroup = JSON.parse(groupJson);
+          console.log('使用localStorage中的群组:', savedGroup);
           this.currentGroup = savedGroup;
           await this.loadMessages();
         } catch (e) {
@@ -203,12 +224,47 @@ export default {
     },
     
     async sendMessage() {
-      if (!this.currentGroup || !this.newMessage.trim() || !this.currentUser) return;
+      // 详细检查每个条件，以便更好地调试
+      if (!this.currentGroup) {
+        console.error('发送消息失败: 当前没有选择群组');
+        this.error = '请先选择一个群组';
+        return;
+      }
+      
+      if (!this.newMessage.trim()) {
+        console.error('发送消息失败: 消息内容为空');
+        return;
+      }
+      
+      if (!this.currentUser) {
+        console.error('发送消息失败: 当前用户信息缺失');
+        this.error = '用户信息未加载，请刷新页面或重新登录';
+        
+        // 尝试重新获取用户信息
+        const userJson = localStorage.getItem('currentUser');
+        if (userJson) {
+          try {
+            this.currentUser = JSON.parse(userJson);
+            console.log('重新加载用户信息成功:', this.currentUser);
+          } catch (e) {
+            console.error('重新解析用户信息失败:', e);
+            return;
+          }
+        } else {
+          return;
+        }
+      }
       
       this.sending = true;
       this.error = null;
       
       try {
+        console.log('正在发送消息:', {
+          groupName: this.currentGroup.name,
+          username: this.currentUser.username,
+          message: this.newMessage.trim()
+        });
+        
         await axios.post('/chat-api/chat/groups/append-message', {
           groupName: this.currentGroup.name,
           username: this.currentUser.username,
@@ -262,6 +318,36 @@ export default {
       const chatLog = this.$refs.chatLog;
       if (chatLog) {
         chatLog.scrollTop = chatLog.scrollHeight;
+      }
+    },
+    
+    async retryLoadMessages() {
+      this.error = null;
+      
+      // 尝试重新加载消息
+      if (this.currentGroup) {
+        await this.loadMessages();
+      } 
+      // 如果没有currentGroup但有props.group，则使用它
+      else if (this.group) {
+        this.currentGroup = this.group;
+        await this.loadMessages();
+      }
+      // 如果还是没有，尝试从localStorage获取
+      else {
+        const groupJson = localStorage.getItem('currentChatGroup');
+        if (groupJson) {
+          try {
+            const savedGroup = JSON.parse(groupJson);
+            this.currentGroup = savedGroup;
+            await this.loadMessages();
+          } catch (e) {
+            console.error('重试时解析群组信息失败:', e);
+            this.error = '无法加载群组信息，请重新选择群组';
+          }
+        } else {
+          this.error = '没有可用的群组信息，请从左侧选择一个群组';
+        }
       }
     }
   }
