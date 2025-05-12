@@ -49,19 +49,27 @@ pipeline {
         stage('运行容器') {
             steps {
                 script {
-                    // 停止并删除已存在的容器（如果有）
+                    // 停止并删除旧容器（任务要求的端口：8082/8083/8084）
                     sh "docker stop teedy-container-8082 || true"
                     sh "docker rm teedy-container-8082 || true"
                     sh "docker stop teedy-container-8083 || true"
                     sh "docker rm teedy-container-8083 || true"
                     sh "docker stop teedy-container-8084 || true"
                     sh "docker rm teedy-container-8084 || true"
-                    // 运行容器
+                    
+                    // 运行第一个容器（端口 8082）
                     docker.image("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}").run(
                         '--name teedy-container-8085 -d -p 8085:8080'
-                        '--name teedy-container-8086 -d -p 8086:8080'
-                        '--name teedy-container-8087 -d -p 8087:8080'                
                     )
+                    // 运行第二个容器（端口 8083）
+                    docker.image("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}").run(
+                        '--name teedy-container-8086 -d -p 8086:8080'
+                    )
+                    // 运行第三个容器（端口 8084）
+                    docker.image("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}").run(
+                        '--name teedy-container-8087 -d -p 8087:8080'
+                    )
+                    
                     // 可选：列出所有 teedy 容器
                     sh 'docker ps --filter "name=teedy-container"'
                 }
