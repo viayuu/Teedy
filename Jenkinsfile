@@ -36,7 +36,7 @@ pipeline {
             steps {
                 script {
                     // 登录 Docker Hub
-                    docker.withRegistry('https://registry.hub.docker.com', 'DOCKER_HUB_CREDENTIALS') {
+                    docker.withRegistry('https://registry.hub.docker.com', '2') {
                         // 推送镜像
                         docker.image("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}").push()
                         // 可选：标记为 latest
