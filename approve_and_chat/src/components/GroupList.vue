@@ -93,6 +93,8 @@ export default {
             email: userResponse.data.email || ''
           };
           localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+          // 通知父组件用户已加载
+          this.$emit('user-loaded', this.currentUser);
         } else {
           throw new Error('无法获取用户信息');
         }
@@ -103,6 +105,8 @@ export default {
         if (storedUser) {
           try {
             this.currentUser = JSON.parse(storedUser);
+            // 通知父组件用户已加载
+            this.$emit('user-loaded', this.currentUser);
           } catch (e) {
             this.error = '无法获取用户信息，请确保已登录到Teedy';
             this.loading = false;

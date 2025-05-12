@@ -114,6 +114,8 @@ export default {
     if (userJson) {
       try {
         this.currentUser = JSON.parse(userJson);
+        // 通知父组件用户已加载
+        this.$emit('user-loaded', this.currentUser);
       } catch (e) {
         console.error('解析用户信息失败:', e);
         this.error = '无法获取用户信息，请重新登录';
@@ -143,7 +145,7 @@ export default {
       if (this.currentGroup) {
         this.refreshMessages();
       }
-    }, 1000); // 每3秒刷新一次
+    }, 1000); // 每1秒刷新一次
     
     // 页面卸载前，通知服务器用户下线
     window.addEventListener('beforeunload', this.notifyLogout);
@@ -228,11 +230,19 @@ export default {
     async notifyLogout() {
       if (this.currentUser && this.currentUser.username) {
         try {
+          // 使用信号来避免重复调用
+          if (window.logoutInProgress) return;
+          window.logoutInProgress = true;
+          
           await axios.post('/chat-api/notify/logout', {
             username: this.currentUser.username
           });
+          
+          console.log(`用户 ${this.currentUser.username} 已成功登出`);
         } catch (error) {
           console.error('通知登出失败:', error);
+        } finally {
+          window.logoutInProgress = false;
         }
       }
     },

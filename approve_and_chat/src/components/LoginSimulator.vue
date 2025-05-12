@@ -7,7 +7,9 @@
     <div class="card-body">
       <div v-if="currentUser" class="alert alert-success">
         <strong>当前登录用户:</strong> {{ currentUser.username }}
-        <button @click="logout" class="btn btn-sm btn-outline-danger ms-3">退出登录</button>
+        <button @click="logout" class="btn btn-sm btn-outline-danger ms-3">
+          <i class="bi bi-box-arrow-right me-1"></i> 退出并返回文档
+        </button>
       </div>
       <form v-else @submit.prevent="login">
         <div class="mb-3">
@@ -96,12 +98,11 @@ export default {
       
       // 从localStorage删除用户信息
       localStorage.removeItem('currentUser');
+      localStorage.removeItem('currentChatGroup');
       this.currentUser = null;
       
-      // 刷新页面以重新加载组件和数据
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // 跳转到Teedy文档系统
+      window.location.href = 'http://localhost:8080/docs-web/src/#/document';
     }
   }
 }
