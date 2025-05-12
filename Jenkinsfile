@@ -14,7 +14,7 @@ pipeline {
             steps {
                 // 检出代码
                 checkout scmGit(
-                    branches: [[name:"558419a"]],
+                    branches: [[name:"practice12"]],
                     extensions:[],
                     userRemoteConfigs: [[url:'https://github.com/viayuu/Teedy.git']]
                 )
