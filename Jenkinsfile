@@ -53,6 +53,9 @@ pipeline {
                     sh "docker stop teedy-container-8082 || true && docker rm teedy-container-8082 || true"
                     sh "docker stop teedy-container-8083 || true && docker rm teedy-container-8083 || true"
                     sh "docker stop teedy-container-8084 || true && docker rm teedy-container-8084 || true"
+                    sh "docker stop teedy-container-8085 || true && docker rm teedy-container-8085 || true"
+                    sh "docker stop teedy-container-8086 || true && docker rm teedy-container-8086 || true"
+                    sh "docker stop teedy-container-8087 || true && docker rm teedy-container-8087 || true"
                     
                     // 运行三个容器（每个容器单独一行，用分号或换行分隔）
                     sh """
