@@ -50,11 +50,17 @@ pipeline {
             steps {
                 script {
                     // 停止并删除已存在的容器（如果有）
-                    sh 'docker stop teedy-container-8081 || true'
-                    sh 'docker rm teedy-container-8081 || true'
+                    sh "docker stop teedy-container-8082 || true"
+                    sh "docker rm teedy-container-8082 || true"
+                    sh "docker stop teedy-container-8083 || true"
+                    sh "docker rm teedy-container-8083 || true"
+                    sh "docker stop teedy-container-8084 || true"
+                    sh "docker rm teedy-container-8084 || true"
                     // 运行容器
                     docker.image("${env.DOCKER_IMAGE}:${env.DOCKER_TAG}").run(
-                        '--name teedy-container-8081 -d -p 8081:8080'
+                        '--name teedy-container-8085 -d -p 8085:8080'
+                        '--name teedy-container-8086 -d -p 8086:8080'
+                        '--name teedy-container-8087 -d -p 8087:8080'                
                     )
                     // 可选：列出所有 teedy 容器
                     sh 'docker ps --filter "name=teedy-container"'
