@@ -1,9 +1,9 @@
 pipeline {
     agent any
     environment {
-        DEPLOYMENT_NAME = "hello-node"  # Deployment 名称
-        CONTAINER_NAME = "hello-node-6554759bcb-g2xh8"   # 容器名称（可通过 kubectl describe pod 查看）
-        IMAGE_NAME = "viayu/teedy:12"  # 例如 your-id/teedy:latest
+        DEPLOYMENT_NAME = "hello-node"  // Deployment 名称
+        CONTAINER_NAME = "hello-node-6554759bcb-g2xh8"   // 容器名称（可通过 kubectl describe pod 查看）
+        IMAGE_NAME = "viayu/teedy:12"  // 例如 your-id/teedy:latest
     }
     stages {
         stage('Start Minikube') {
@@ -25,8 +25,8 @@ pipeline {
         }
         stage('Verify') {
             steps {
-                sh "kubectl rollout status deployment/${DEPLOYMENT_NAME}"  # 验证部署状态
-                sh "kubectl get pods"  # 检查 Pod 是否更新为新镜像
+                sh "kubectl rollout status deployment/${DEPLOYMENT_NAME}"  // 验证部署状态
+                sh "kubectl get pods"  // 检查 Pod 是否更新为新镜像
             }
         }
     }
