@@ -1,10 +1,10 @@
 pipeline {
     agent any
-    environment {
-        DEPLOYMENT_NAME = "hello-node"  // Deployment 名称
-        CONTAINER_NAME = "hello-node-6554759bcb-g2xh8"   // 容器名称（可通过 kubectl describe pod 查看）
-        IMAGE_NAME = "viayu/teedy:12"  // 例如 your-id/teedy:latest
-    }
+environment {
+    DEPLOYMENT_NAME = "hello-node"      // Deployment 名称（正确）
+    CONTAINER_NAME = "teedy"            // 容器名称（从 Deployment 中确认）
+    CONTAINER_IMAGE = "viayu/teedy:12"  // 镜像名称（格式：<仓库>/<镜像名>:<标签>）
+}
     stages {
         stage('Start Minikube') {
             steps {
