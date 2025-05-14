@@ -1,66 +1,33 @@
 pipeline {
     agent any
-
-    stages {
-        stage('Clean') {
-            steps {
-                sh 'mvn clean'
-            }
-        }
-        stage('Compile') {
-            steps {
-                sh 'mvn compile'
-            }
-        }
-        stage('Test') {
-            steps {
-                // 单独通过 Maven 参数忽略测试失败
-                sh 'mvn test -Dmaven.test.failure.ignore=true'
-            }
-        }
-        stage('PMD') {
-            steps {
-                sh 'mvn pmd:pmd'
-            }
-        }
-        stage('JaCoCo') {
-            steps {
-                sh 'mvn jacoco:report'
-            }
-        }
-        stage('Javadoc') {
-            steps {
-                script {
-                    try {
-                        // 运行Javadoc命令，捕获可能错误
-                        sh 'mvn javadoc:javadoc'
-                    } catch (Exception e) {
-                        echo "Javadoc generation failed with error: ${e}. Ignoring and continuing build..."
-                        // 设置构建状态为UNSTABLE，以标记问题但不失败
-                        currentBuild.result = 'UNSTABLE'
-                    }
-                }
-            }
-        }
-        stage('Site') {
-            steps {
-                // 运行Site命令，确保即使Javadoc失败，Site也能尝试生成
-                sh 'mvn site'
-            }
-        }
-        stage('Package') {
-            steps {
-                sh 'mvn package -DskipTests'
-            }
-        }
+    environment {
+        DEPLOYMENT_NAME = "hello-node"  # Deployment 名称
+        CONTAINER_NAME = "hello-node-6554759bcb-g2xh8"   # 容器名称（可通过 kubectl describe pod 查看）
+        IMAGE_NAME = "viayu/teedy:12"  # 例如 your-id/teedy:latest
     }
-
-    post {
-        always {
-            archiveArtifacts artifacts: '**/target/site/**/*.*', fingerprint: true
-            archiveArtifacts artifacts: '**/target/**/*.jar', fingerprint: true
-            archiveArtifacts artifacts: '**/target/**/*.war', fingerprint: true
-            junit '**/target/surefire-reports/*.xml'
+    stages {
+        stage('Start Minikube') {
+            steps {
+                sh '''
+                if ! minikube status | grep -q "Running"; then
+                    echo "Starting Minikube..."
+                    minikube start
+                else
+                    echo "Minikube already running."
+                fi
+                '''
+            }
+        }
+        stage('Set Image') {
+            steps {
+                sh "kubectl set image deployment/${DEPLOYMENT_NAME} ${CONTAINER_NAME}=${IMAGE_NAME}"
+            }
+        }
+        stage('Verify') {
+            steps {
+                sh "kubectl rollout status deployment/${DEPLOYMENT_NAME}"  # 验证部署状态
+                sh "kubectl get pods"  # 检查 Pod 是否更新为新镜像
+            }
         }
     }
 }
